@@ -20,7 +20,7 @@
 <title>∅&#45;&gt;∅</title>
 <path fill="none" stroke="black" d="M341.91,-252.02C341.47,-262.66 344.83,-271.5 352,-271.5 356.71,-271.5 359.77,-267.69 361.2,-262.07"/>
 <polygon fill="black" stroke="black" points="364.69,-262.29 362.09,-252.02 357.72,-261.67 364.69,-262.29"/>
-<text text-anchor="middle" x="352" y="-275.3" font-family="Times,serif" font-size="14.00">0,1</text>
+<text text-anchor="middle" x="352" y="-275.3" font-family="Times,serif" font-size="14.00">a,b</text>
 </g>
 <!-- q1 -->
 <g id="node2" class="node">
@@ -35,7 +35,7 @@
 <title>q1&#45;&gt;∅</title>
 <path fill="none" stroke="black" d="M167.34,-230.45C206.2,-229.19 271.34,-227.08 312.69,-225.74"/>
 <polygon fill="black" stroke="black" points="313.04,-229.23 322.92,-225.41 312.81,-222.24 313.04,-229.23"/>
-<text text-anchor="middle" x="243" y="-232.3" font-family="Times,serif" font-size="14.00">1</text>
+<text text-anchor="middle" x="243" y="-232.3" font-family="Times,serif" font-size="14.00">b</text>
 </g>
 <!-- q0q1 -->
 <g id="node4" class="node">
@@ -52,7 +52,7 @@
 <title>q1&#45;&gt;q0q1</title>
 <path fill="none" stroke="black" d="M162.28,-213.91C175.61,-205.31 191.83,-194.85 206.15,-185.62"/>
 <polygon fill="black" stroke="black" points="208.27,-188.42 214.77,-180.06 204.47,-182.54 208.27,-188.42"/>
-<text text-anchor="middle" x="188.5" y="-203.3" font-family="Times,serif" font-size="14.00">0</text>
+<text text-anchor="middle" x="188.5" y="-203.3" font-family="Times,serif" font-size="14.00">a</text>
 </g>
 <!-- q2 -->
 <g id="node3" class="node">
@@ -66,7 +66,7 @@
 <title>q2&#45;&gt;q1</title>
 <path fill="none" stroke="black" d="M56.26,-262.79C67.66,-258.14 81.25,-252.6 93.8,-247.48"/>
 <polygon fill="black" stroke="black" points="95.21,-250.69 103.15,-243.67 92.57,-244.21 95.21,-250.69"/>
-<text text-anchor="middle" x="79.5" y="-257.3" font-family="Times,serif" font-size="14.00">0</text>
+<text text-anchor="middle" x="79.5" y="-257.3" font-family="Times,serif" font-size="14.00">a</text>
 </g>
 <!-- q1q2 -->
 <g id="node5" class="node">
@@ -83,14 +83,14 @@
 <title>q2&#45;&gt;q1q2</title>
 <path fill="none" stroke="black" d="M53.91,-289C74.14,-300.61 104.32,-314.5 133,-314.5 133,-314.5 133,-314.5 353,-314.5 407,-314.5 436.13,-249.55 449.82,-204.56"/>
 <polygon fill="black" stroke="black" points="453.25,-205.31 452.67,-194.74 446.52,-203.37 453.25,-205.31"/>
-<text text-anchor="middle" x="243" y="-318.3" font-family="Times,serif" font-size="14.00">1</text>
+<text text-anchor="middle" x="243" y="-318.3" font-family="Times,serif" font-size="14.00">b</text>
 </g>
 <!-- q0q1&#45;&gt;∅ -->
 <g id="edge6" class="edge">
 <title>q0q1&#45;&gt;∅</title>
 <path fill="none" stroke="black" d="M271.83,-178.63C285.88,-186.77 303.03,-196.7 317.77,-205.24"/>
 <polygon fill="black" stroke="black" points="316.18,-208.37 326.58,-210.35 319.69,-202.31 316.18,-208.37"/>
-<text text-anchor="middle" x="297.5" y="-199.3" font-family="Times,serif" font-size="14.00">1</text>
+<text text-anchor="middle" x="297.5" y="-199.3" font-family="Times,serif" font-size="14.00">b</text>
 </g>
 <!-- q0q1q2 -->
 <g id="node7" class="node">
@@ -109,21 +109,21 @@
 <title>q0q1&#45;&gt;q0q1q2</title>
 <path fill="none" stroke="black" d="M267.48,-140.12C282.95,-125.37 303.37,-105.9 320.15,-89.91"/>
 <polygon fill="black" stroke="black" points="322.75,-92.27 327.57,-82.83 317.92,-87.2 322.75,-92.27"/>
-<text text-anchor="middle" x="297.5" y="-119.3" font-family="Times,serif" font-size="14.00">0</text>
+<text text-anchor="middle" x="297.5" y="-119.3" font-family="Times,serif" font-size="14.00">a</text>
 </g>
 <!-- q1q2&#45;&gt;q0q1 -->
 <g id="edge8" class="edge">
 <title>q1q2&#45;&gt;q0q1</title>
 <path fill="none" stroke="black" d="M427.79,-162.5C390.21,-162.5 327.91,-162.5 286.41,-162.5"/>
 <polygon fill="black" stroke="black" points="286.34,-159 276.34,-162.5 286.34,-166 286.34,-159"/>
-<text text-anchor="middle" x="352" y="-166.3" font-family="Times,serif" font-size="14.00">0</text>
+<text text-anchor="middle" x="352" y="-166.3" font-family="Times,serif" font-size="14.00">a</text>
 </g>
 <!-- q1q2&#45;&gt;q1q2 -->
 <g id="edge9" class="edge">
 <title>q1q2&#45;&gt;q1q2</title>
 <path fill="none" stroke="black" d="M450.88,-194.13C450.82,-204.87 454.2,-213.5 461,-213.5 465.46,-213.5 468.45,-209.78 469.96,-204.19"/>
 <polygon fill="black" stroke="black" points="473.46,-204.46 471.12,-194.13 466.5,-203.66 473.46,-204.46"/>
-<text text-anchor="middle" x="461" y="-217.3" font-family="Times,serif" font-size="14.00">1</text>
+<text text-anchor="middle" x="461" y="-217.3" font-family="Times,serif" font-size="14.00">b</text>
 </g>
 <!-- start -->
 <g id="node6" class="node">
@@ -141,14 +141,14 @@
 <title>q0q1q2&#45;&gt;q1q2</title>
 <path fill="none" stroke="black" d="M376.48,-82.88C391.95,-97.63 412.37,-117.1 429.15,-133.09"/>
 <polygon fill="black" stroke="black" points="426.92,-135.8 436.57,-140.17 431.75,-130.73 426.92,-135.8"/>
-<text text-anchor="middle" x="406.5" y="-119.3" font-family="Times,serif" font-size="14.00">1</text>
+<text text-anchor="middle" x="406.5" y="-119.3" font-family="Times,serif" font-size="14.00">b</text>
 </g>
 <!-- q0q1q2&#45;&gt;q0q1q2 -->
 <g id="edge12" class="edge">
 <title>q0q1q2&#45;&gt;q0q1q2</title>
 <path fill="none" stroke="black" d="M341.88,-92.13C341.82,-102.87 345.2,-111.5 352,-111.5 356.46,-111.5 359.45,-107.78 360.96,-102.19"/>
 <polygon fill="black" stroke="black" points="364.46,-102.46 362.12,-92.13 357.5,-101.66 364.46,-102.46"/>
-<text text-anchor="middle" x="352" y="-115.3" font-family="Times,serif" font-size="14.00">0</text>
+<text text-anchor="middle" x="352" y="-115.3" font-family="Times,serif" font-size="14.00">a</text>
 </g>
 <!-- Legend -->
 <g id="node8" class="node">
@@ -182,9 +182,9 @@
 <polygon fill="none" stroke="black" points="512.5,-199.5 512.5,-224.5 595.5,-224.5 595.5,-199.5 512.5,-199.5"/>
 <text text-anchor="start" x="550" y="-208.3" font-family="Times,serif" font-size="14.00">δ</text>
 <polygon fill="none" stroke="black" points="595.5,-199.5 595.5,-224.5 656.5,-224.5 656.5,-199.5 595.5,-199.5"/>
-<text text-anchor="start" x="622.5" y="-209.3" font-family="Times,serif" font-weight="bold" font-size="14.00">0</text>
+<text text-anchor="start" x="622.5" y="-209.3" font-family="Times,serif" font-weight="bold" font-size="14.00">a</text>
 <polygon fill="none" stroke="black" points="656.5,-199.5 656.5,-224.5 697.5,-224.5 697.5,-199.5 656.5,-199.5"/>
-<text text-anchor="start" x="673.5" y="-209.3" font-family="Times,serif" font-weight="bold" font-size="14.00">1</text>
+<text text-anchor="start" x="673" y="-209.3" font-family="Times,serif" font-weight="bold" font-size="14.00">b</text>
 <polygon fill="none" stroke="black" points="697.5,-199.5 697.5,-224.5 729.5,-224.5 729.5,-199.5 697.5,-199.5"/>
 <text text-anchor="start" x="708.5" y="-209.3" font-family="Times,serif" font-weight="bold" font-size="14.00">ℇ</text>
 <polygon fill="none" stroke="black" points="512.5,-174.5 512.5,-199.5 595.5,-199.5 595.5,-174.5 512.5,-174.5"/>

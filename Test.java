@@ -8,13 +8,13 @@ public class Test {
          */
         Automaton nfa = new Automaton("NFA1");
         // Symbols
-        nfa.addSymbol(Arrays.asList("0", "1"));
+        nfa.addSymbol(Arrays.asList("a", "b"));
         // States
         nfa.addState(Arrays.asList("q0", "q1"));
         // Transitions
         nfa.getState("q0")
-                .setTransition(Arrays.asList("0", "q0", "0", "q1", "1", "q1"));
-        nfa.getState("q1").setTransition(Arrays.asList("1", "q0"));
+                .setTransition(Arrays.asList("a", "q0", "a", "q1", "b", "q1"));
+        nfa.getState("q1").setTransition(Arrays.asList("b", "q0"));
         // Accept states
         nfa.setAccept("q0");
         // Start
@@ -43,16 +43,16 @@ public class Test {
          */
         Automaton nfa = new Automaton("NFA2");
         // Symbols
-        nfa.addSymbol(Arrays.asList("0", "1"));
+        nfa.addSymbol(Arrays.asList("a", "b"));
         // States
         nfa.addState(Arrays.asList("q0", "q1", "q2"));
         // Transitions
         nfa.getState("q0")
                 .setTransition(
-                        Arrays.asList("0", "q2", Automaton.EPSILON, "q1"));
-        nfa.getState("q1").setTransition(Arrays.asList("0", "q0"));
+                        Arrays.asList("a", "q2", Automaton.EPSILON, "q1"));
+        nfa.getState("q1").setTransition(Arrays.asList("a", "q0"));
         nfa.getState("q2")
-                .setTransition(Arrays.asList("0", "q1", "1", "q1", "1", "q2"));
+                .setTransition(Arrays.asList("a", "q1", "b", "q1", "b", "q2"));
         // Accept states
         nfa.setAccept("q1");
         // Start
@@ -119,7 +119,7 @@ public class Test {
 
     public static void main(String... args) {
 
-        NFA2();
+        NFA1();
     }
 
 }

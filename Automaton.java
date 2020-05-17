@@ -279,7 +279,8 @@ public class Automaton {
          */
         powerSet.entrySet()
                 .stream()
-                .filter(state -> epsilonClosure(state.getValue()).stream()
+                .filter(state -> state.getValue()
+                        .stream()
                         .anyMatch(t -> this.nameAcceptStates.contains(t.name)))
                 .map(Map.Entry::getKey)
                 .forEach(dfa::setAccept);
