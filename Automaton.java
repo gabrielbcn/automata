@@ -366,10 +366,6 @@ public class Automaton {
         return simplified;
     }
 
-    void exploreLanguage(int max) {
-
-    }
-
     /*
      * presentation block
      */

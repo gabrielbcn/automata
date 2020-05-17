@@ -25,16 +25,6 @@ public class Test {
          */
         Automaton dfa = nfa.nfa2dfa();
         dfa.render(); // Show
-        /*
-         * Simplified DFA
-         */
-        Automaton dfa2 = dfa.simplified();
-        dfa2.render(); // Show
-        /*
-         * Simplified DFA
-         */
-        Automaton dfa3 = dfa2.simplified();
-        dfa3.render(); // Show
     }
 
     static void NFA2() {
@@ -119,7 +109,7 @@ public class Test {
 
     public static void main(String... args) {
 
-        NFA1();
+        NFA3();
     }
 
 }
