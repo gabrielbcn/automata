@@ -369,10 +369,11 @@ public class GraphViz {
     public void readSource(String input) {
         StringBuilder sb = new StringBuilder();
 
-        try {
-            FileInputStream fis = new FileInputStream(input);
-            DataInputStream dis = new DataInputStream(fis);
-            BufferedReader br = new BufferedReader(new InputStreamReader(dis));
+        try (FileInputStream fis = new FileInputStream(input);
+                DataInputStream dis = new DataInputStream(fis);
+                BufferedReader br = new BufferedReader(
+                        new InputStreamReader(dis));) {
+
             String line;
             while ((line = br.readLine()) != null) {
                 sb.append(line);
