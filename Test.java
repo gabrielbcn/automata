@@ -4,7 +4,7 @@ public class Test {
 
     static void NFA1() {
         /*
-         * NFA3 TO DFA
+         * NFA1 TO DFA
          */
         Automaton nfa = new Automaton("NFA1");
         // Symbols
@@ -116,9 +116,52 @@ public class Test {
         LanguageTree.reproduce(dfa3, 100);
     }
 
+    static void NFA4() {
+        /*
+         * NFA4 TO DFA
+         */
+        Automaton nfa = new Automaton("NFA4");
+        // Symbols
+        nfa.addSymbol(Arrays.asList("1"));
+        // States
+        nfa.addState(Arrays.asList("s", "q1", "q2", "r1", "r2", "r3"));
+        // Transitions
+        nfa.getState("s")
+                .setTransition(Arrays.asList(Automaton.EPSILON, "q1",
+                        Automaton.EPSILON, "r1"));
+        nfa.getState("q1").setTransition(Arrays.asList("1", "q2"));
+        nfa.getState("q2").setTransition(Arrays.asList("1", "q1"));
+        nfa.getState("r1").setTransition(Arrays.asList("1", "r2"));
+        nfa.getState("r2").setTransition(Arrays.asList("1", "r3"));
+        nfa.getState("r3").setTransition(Arrays.asList("1", "r1"));
+        // Accept states
+        nfa.setAccept(Arrays.asList("q1", "r1"));
+        // Start
+        nfa.setStart("s");
+        nfa.render(); // Show
+        /*
+         * creating the corresponding DFA
+         */
+        Automaton dfa = nfa.nfa2dfa();
+        dfa.render(); // Show
+        /*
+         * Simplified DFA
+         */
+        Automaton dfa2 = dfa.simplified();
+        dfa2.render(); // Show
+        /*
+         * Simplified DFA
+         */
+        Automaton dfa3 = dfa2.simplified();
+        dfa3.render(); // Show
+
+        LanguageTree.reproduce(nfa, 100);
+        LanguageTree.reproduce(dfa3, 100);
+    }
+
     public static void main(String... args) {
 
-        NFA3();
+        NFA4();
 
     }
 

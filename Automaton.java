@@ -89,7 +89,8 @@ public class Automaton {
 
         @Override
         public String toString() {
-            return "State[" + name + ":" + accept + ":" + transition + "]";
+            // return "S[" + name + ":" + accept + ":" + transition +"]";
+            return "S[" + name + "]";
         }
 
         public String getName() {
@@ -190,7 +191,7 @@ public class Automaton {
         nameAcceptStates.add(state.name);
     }
 
-    public void setAcceptStateNames(List<String> nameStates) {
+    public void setAccept(List<String> nameStates) {
         nameStates.forEach(this::setAccept);
     }
 
@@ -272,7 +273,8 @@ public class Automaton {
             if (set.isEmpty())
                 result.put(EMPTY, Arrays.asList(new State(EMPTY)));
             else
-                result.put(set.stream().collect(Collectors.joining("")),
+                result.put(
+                        set.stream().sorted().collect(Collectors.joining("")),
                         set.stream()
                                 .map(this::getState)
                                 .collect(Collectors.toList()));
@@ -291,7 +293,6 @@ public class Automaton {
         // Get the powerset and add the states
         Map<String, List<State>> powerSet = this.statesPowerSet();
         powerSet.keySet().stream().forEach(dfa::addState);
-
         /*
          * Get accept states traverse powerset, apply epsilon closure to
          * list of associated states and see if any outcome maps to accept
@@ -316,6 +317,7 @@ public class Automaton {
                 String dest = epsilonClosure(transition(symbol, statesList))
                         .stream()
                         .map(s -> s.name)
+                        .sorted()
                         .collect(Collectors.joining(""));
                 if (!symbol.name.equals(EPSILON)) {
                     if (dest.length() > 0)
