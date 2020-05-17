@@ -25,11 +25,14 @@ public class Test {
          */
         Automaton dfa = nfa.nfa2dfa();
         dfa.render(); // Show
+
+        LanguageTree.reproduce(nfa, 100);
+        LanguageTree.reproduce(dfa, 100);
     }
 
     static void NFA2() {
         /*
-         * NFA3 TO DFA
+         * NFA2 TO DFA
          */
         Automaton nfa = new Automaton("NFA2");
         // Symbols
@@ -68,6 +71,9 @@ public class Test {
          */
         Automaton dfa4 = dfa3.simplified();
         dfa4.render(); // Show
+
+        LanguageTree.reproduce(nfa, 100);
+        LanguageTree.reproduce(dfa, 100);
     }
 
     static void NFA3() {
@@ -105,11 +111,15 @@ public class Test {
          */
         Automaton dfa3 = dfa2.simplified();
         dfa3.render(); // Show
+
+        LanguageTree.reproduce(nfa, 100);
+        LanguageTree.reproduce(dfa3, 100);
     }
 
     public static void main(String... args) {
 
         NFA3();
+
     }
 
 }

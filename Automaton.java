@@ -31,6 +31,14 @@ public class Automaton {
             return "Sym[" + name + "]";
         }
 
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
     }
 
     /*
@@ -190,9 +198,21 @@ public class Automaton {
         states.forEach(this::setAccept);
     }
 
+    public boolean isAccept(State state) {
+        return nameAcceptStates.contains(state.name);
+    }
+
+    public boolean isAccept(List<State> states) {
+        return states.stream().anyMatch(this::isAccept);
+    }
+
     public void setStart(String startState) {
         getState(START).setTransition(Arrays.asList(EPSILON, startState));
         this.nameStartState = startState;
+    }
+
+    public State getStartState() {
+        return getState(this.nameStartState);
     }
 
     @Override
