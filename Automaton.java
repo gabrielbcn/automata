@@ -4,8 +4,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Predicate;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -111,7 +112,7 @@ public class Automaton {
     // Name of start state
     String nameStartState;
     // Name of accept states
-    List<String> nameAcceptStates;
+    Set<String> nameAcceptStates;
 
     /*
      * Constructor
@@ -126,8 +127,7 @@ public class Automaton {
         symbols = new TreeMap<>();
         symbols.put(EPSILON, new Symbol(EPSILON));
 
-        nameAcceptStates = new ArrayList<>();
-
+        nameAcceptStates = new TreeSet<>(shortFirst);
     }
 
     /*
@@ -157,6 +157,10 @@ public class Automaton {
     public void addState(List<String> states) {
         for (String s : states)
             addState(s);
+    }
+
+    public void addState(State state) {
+        states.put(state.name, state);
     }
 
     public State getState(String name) {
@@ -189,6 +193,12 @@ public class Automaton {
     public void setStart(String startState) {
         getState(START).setTransition(Arrays.asList(EPSILON, startState));
         this.nameStartState = startState;
+    }
+
+    @Override
+    public String toString() {
+        return "Automaton [name=" + name + ", states=" + states + ", symbols="
+                + symbols + "]";
     }
 
     /*
@@ -253,7 +263,7 @@ public class Automaton {
     public Automaton nfa2dfa() {
 
         // Set name
-        Automaton dfa = new Automaton("DFA from " + this.name);
+        Automaton dfa = new Automaton(this.name + "→DFA");
 
         // Set symbols
         dfa.symbols = this.symbols;
@@ -309,6 +319,52 @@ public class Automaton {
         return dfa;
     }
 
+    // All the outs from a state
+    List<State> allIncoming() {
+
+        return this.states.values()
+                .stream()
+                .flatMap(s -> s.transition.stream()
+                        .map(Automaton.Pair::getState)
+                        .filter(trst -> !trst.name.equals(s.name)))
+                .collect(Collectors.toList());
+    }
+
+    // Generate a simplified automaton
+    public Automaton simplified() {
+
+        // Set name
+        Automaton simplified = new Automaton(this.name + "→S");
+
+        // Set symbols
+        simplified.symbols = this.symbols;
+
+        // Surviving states
+        List<State> surviving = allIncoming();
+        List<String> survivingNames = surviving.stream()
+                .map(Automaton.State::getName)
+                .collect(Collectors.toList());
+
+        // Add the states as they are, with the transition function already
+        // inside
+        surviving.stream().forEach(simplified::addState);
+
+        /*
+         * Get accept states traverse powerset, apply epsilon closure to
+         * list of associated states and see if any outcome maps to accept
+         * state, then add
+         */
+        simplified.nameAcceptStates = this.nameAcceptStates.stream()
+                .filter(survivingNames::contains)
+                .collect(Collectors.toSet());
+
+        // Same start
+        simplified.setStart(this.nameStartState);
+
+        // Simplified done!!
+        return simplified;
+    }
+
     /*
      * presentation block
      */
@@ -329,12 +385,13 @@ public class Automaton {
         else
             return stateNames.stream()
                     .map(this::toSub)
-                    .collect(Collectors.joining(",", "{", "}"));
+                    .collect(Collectors.joining(", ", "{", "}"));
     }
 
     // Convert figures to subscript
     private String toSub(String input) {
-        return input.replaceAll("([0-9]+)", "<sub>$1</sub>");
+        return input.replaceAll("([0-9]+)",
+                "<sub><font point-size=\"9\">$1</font></sub>");
     }
 
     /*
@@ -433,27 +490,32 @@ public class Automaton {
                 + input + "</TABLE>\n";
     }
 
+    // Formats the full legend as HTML table
     private String table() {
-
         StringBuilder result = new StringBuilder();
-        // Symbol set
-        ArrayList<String> keys = new ArrayList<>(this.symbols.keySet());
+        int colspan = this.symbols.size() + 1; // number of columns because
+                                               // of symbols
+
+        // Name
+        result.append(tr(td(b(this.name.toUpperCase()), colspan)));
+
+        // States
+        // List of states without START
+        List<State> cleanStates = this.states.values()
+                .stream()
+                .filter(state -> !state.name.equals(START))
+                .collect(Collectors.toCollection(ArrayList<State>::new));
+        result.append(tr(td(i(b("States")), colspan)));
+        result.append(tr(td(presentStates(cleanStates), colspan)));
 
         // Transition function
-        result.append(tr(td(i("Transition function"), keys.size() + 1)));
+        result.append(tr(td(i(b("Transition function")), colspan)));
         // Symbols row
         result.append(tr(td("δ") + this.symbols.keySet()
                 .stream()
                 .map(this::b)
                 .map(this::td)
                 .collect(Collectors.joining())));
-
-        // List of states without START
-        List<State> cleanStates = this.states.values()
-                .stream()
-                .filter(state -> !state.name.equals(START))
-                .collect(Collectors.toCollection(ArrayList<State>::new));
-
         /*
          * stream through states, for each state do the following:
          * 
@@ -463,18 +525,33 @@ public class Automaton {
          * of row 7. put in tr 8. append to result
          */
         cleanStates.stream()
-                .map(state -> tr(td(b(toSub(state.name))) + keys.stream()
-                        .map(key -> td(presentStates(
-                                transition(getSymbol(key), state))))
+                .map(state -> tr(td(b(toSub(state.name))) + this.symbols
+                        .values()
+                        .stream()
+                        .map(symbol -> td(
+                                presentStates(transition(symbol, state))))
                         .collect(Collectors.joining(""))))
                 .forEach(result::append);
+        // Name of start state
+        // String nameStartState;
+        // Name of accept states
+        // List<String> nameAcceptStates;
+        // Start State
+        result.append(tr(td(i(b("Start state: ")) + toSub(this.nameStartState),
+                colspan)));
 
-        System.out.println(tbl(result.toString()));
+        // Accept States
+        result.append(tr(td(i(b("Accept states: "))
+                + presentStates(this.nameAcceptStates.stream()
+                        .map(this::getState)
+                        .collect(Collectors.toList())),
+                colspan)));
+
         return tbl(result.toString());
-
     }
 
-    private String legend() {
+    // Sets a subgraph with the legend
+    private String graphLegend() {
         StringBuilder result = new StringBuilder();
         result.append("\n { \nrank = sink; \n");
         result.append("Legend [shape=none, margin=0, label=<\n");
@@ -483,23 +560,17 @@ public class Automaton {
         return result.toString();
     }
 
+    // Renders an automaton
     public void render() {
-
         GraphViz gv = new GraphViz();
         gv.addln(gv.startGraph());
         gv.add(this.graphStates2Nodes());
         gv.add(this.graphTransitions2Links());
-        gv.add(this.legend());
+        gv.add(this.graphLegend());
         gv.addln(gv.endGraph());
         String type = "svg";
         File out = new File(this.name + "." + type);
         gv.writeGraphToFile(gv.getGraph(gv.getDotSource(), type), out);
-    }
-
-    @Override
-    public String toString() {
-        return "Automaton [name=" + name + ", states=" + states + ", symbols="
-                + symbols + "]";
     }
 
 }
