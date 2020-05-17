@@ -230,6 +230,7 @@ public class Automaton {
         return state.transition.stream()
                 .filter(p -> p.symbol == symbol)
                 .map(p -> p.state)
+                .distinct()
                 .collect(Collectors.toList());
     }
 
