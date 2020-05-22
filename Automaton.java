@@ -108,7 +108,12 @@ public class Automaton {
     // To sort TreeMap
     private static final Comparator<String> shortFirst = Comparator
             .comparing(String::length)
-            .thenComparing(String::compareTo);
+            .thenComparing(Comparator.naturalOrder());
+
+    /*
+     * Static
+     */
+    public static boolean withLegend = true;
     /*
      * Fields
      */
@@ -152,11 +157,13 @@ public class Automaton {
     }
 
     public Symbol getSymbol(String name) {
-        Symbol found = symbols.get(name);
         // Error checking
-        if (found == null)
-            throw new RuntimeException("Symbol " + name + " not found");
-        return found;
+        if (symbols.get(name) == null) {
+            System.err.println(
+                    "WARNING: Symbol " + name + " not found, creating...");
+            addSymbol(name);
+        }
+        return symbols.get(name);
     }
 
     public void addState(String state) {
@@ -444,11 +451,9 @@ public class Automaton {
     // For a given state, return the transitions as graphviz links
     private String graphStateTransitions2Links(String originState,
             List<Pair> transitionsFromState) {
-        // Error checking
-        if (transitionsFromState == null || transitionsFromState.isEmpty()
-                || transitionsFromState.get(0).symbol == null)
-            throw new RuntimeException(
-                    "Node links printout called on null, empty or null element list");
+        // No transitions out
+        if (transitionsFromState == null || transitionsFromState.isEmpty())
+            return "";
         // Group the transitions from origin state to same destination
         // state together
         Map<State, List<Pair>> set = transitionsFromState.stream()
@@ -598,7 +603,8 @@ public class Automaton {
         gv.addln(gv.startGraph());
         gv.add(this.graphStates2Nodes());
         gv.add(this.graphTransitions2Links());
-        gv.add(this.graphLegend());
+        if (Automaton.withLegend)
+            gv.add(this.graphLegend());
         gv.addln(gv.endGraph());
         String type = "svg";
         File out = new File(this.name + "." + type);
