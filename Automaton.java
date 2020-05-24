@@ -10,8 +10,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -102,7 +104,7 @@ public class Automaton {
                 final Symbol tempSym = getSymbol(inputMap.get(i));
                 final State tempState = getState(inputMap.get(i + 1));
 
-                this.transition.add(new Pair(tempSym, tempState));
+                this.transition.add(0, new Pair(tempSym, tempState));
             }
         }
 
@@ -181,7 +183,7 @@ public class Automaton {
 
         this.name = name;
         this.states = new TreeMap<>(shortFirst);
-        this.symbols = new TreeMap<>(shortFirst);
+        this.symbols = new TreeMap<>();
         this.symbols.put(EPSILON, new Symbol(EPSILON));
         this.acceptStates = new TreeSet<>();
     }
@@ -274,6 +276,14 @@ public class Automaton {
 
     public Stream<State> getAcceptStatesStream() {
         return this.states.values().stream().filter(State::isAccept);
+    }
+
+    public void clearAccept(State state) {
+        state.accept = false;
+    }
+
+    public void clearAccept() {
+        this.getAcceptStatesStream().forEach(this::clearAccept);
     }
 
     // Start state
@@ -492,75 +502,6 @@ public class Automaton {
     Comparator<Pair> bySymbol = Comparator.comparing(Pair::getSymbolName)
             .thenComparing(Comparator.comparing(Pair::getStateName));
 
-    // Return all states poiting in
-    public List<Pair> arrowsIn(final State state) {
-
-        final Predicate<Pair> isGoingToState = pair -> pair.state.equals(state);
-        final Function<State, Stream<Pair>> extract = s -> s.transition.stream()
-                .filter(isGoingToState)
-                .map(tp -> new Pair(tp.symbol, s));
-
-        final Predicate<Pair> notComingFromState = pair -> !pair.state
-                .equals(state);
-
-        return this.getStatesStream()
-                .flatMap(extract)
-                .filter(notComingFromState)
-                .sorted(byState)
-                .collect(Collectors.toList());
-    }
-
-    // Return states looping back
-    public List<Pair> arrowsLoop(final State state) {
-
-        final Predicate<Pair> isGoingToState = pair -> pair.state.equals(state);
-        final Function<State, Stream<Pair>> extract = s -> s.transition.stream()
-                .filter(isGoingToState)
-                .map(tp -> new Pair(tp.symbol, s));
-
-        final Predicate<Pair> comingFromItself = pair -> pair.state
-                .equals(state);
-
-        return this.getStatesStream()
-                .flatMap(extract)
-                .filter(comingFromItself)
-                .sorted(byState)
-                .collect(Collectors.toList());
-    }
-
-    // Return states this state is pointing to
-    public List<Pair> arrowsOut(final State state) {
-
-        final Predicate<Pair> notComingFromState = pair -> !pair.state
-                .equals(state);
-
-        return state.transition.stream()
-                .filter(notComingFromState)
-                .sorted(byState)
-                .collect(Collectors.toList());
-    }
-
-    // Make the connections around a state
-    public void routesAround(final State state) {
-
-        List<Pair> arrowsIn = this.arrowsIn(state);
-        List<Pair> arrowsOut = this.arrowsOut(state);
-        List<Pair> arrowsLoop = this.arrowsLoop(state);
-
-        BiConsumer<Pair, Pair> biconsumer = (in, out) -> {
-            String sym = in.getSymbolName();
-            if (!arrowsLoop.isEmpty())
-                sym += "(" + arrowsLoop.get(0).getSymbolName() + ")"
-                        + Automaton.STAR;
-            sym += out.getSymbolName();
-            this.addSymbol(sym);
-            in.state.setTransition(List.of(sym, out.getState().getName()));
-        };
-
-        arrowsIn.forEach(
-                out -> arrowsOut.forEach(in -> biconsumer.accept(in, out)));
-    }
-
     // Factory
     public Automaton cloneExceptState(State ignore) {
 
@@ -611,6 +552,174 @@ public class Automaton {
     public Automaton cloneExcept(String ignore) {
         return ignore.isBlank() ? this.cloneExceptState(null)
                 : this.cloneExceptState(getState(ignore));
+    }
+
+    public Automaton cloner() {
+        return this.cloneExceptState(null);
+    }
+
+    public void parallelUnion() {
+        BinaryOperator<List<Pair>> combine = (l1, l2) -> {
+            l1.addAll(l2);
+            return l2;
+        };
+        Consumer<State> consumingState = s -> {
+            // Join the transitions to same state
+            Map<State, String> newTrans = s.getTransitionStream()
+                    .collect(Collectors.groupingBy(Pair::getState,
+                            Collectors.mapping(Pair::getSymbolName,
+                                    Collectors.joining(Automaton.UNION))));
+            // Update the transition function
+            s.transition.clear();
+            newTrans.entrySet()
+                    .stream()
+                    .map(e -> new Pair(getSymbol(e.getValue()), e.getKey()))
+                    .collect(Collector.<Pair, List<Pair>>of(() -> s.transition,
+                            List::add, combine,
+                            Collector.Characteristics.IDENTITY_FINISH));
+        };
+        this.getStatesStream().forEach(consumingState);
+    }
+
+    public void arrangeForRE() {
+
+        // New start
+        if (hasArrowsIn(this.getStartState())) {
+            this.addState("S");
+            this.getState("S")
+                    .setTransition(List.of(Automaton.EPSILON,
+                            this.startState.getName()));
+            this.setStart("S");
+        }
+        // New accept
+        if (this.acceptStates.size() != 1
+                || hasArrowsOut(acceptStates.iterator().next())
+                || acceptStates.contains(this.getStartState())) {
+            this.addState("a");
+            this.getAcceptStatesStream()
+                    .forEach(s -> s
+                            .setTransition(List.of(Automaton.EPSILON, "a")));
+            this.clearAccept();
+            this.setAccept("a");
+        }
+        // Make union of equivalent paths
+        this.parallelUnion();
+    }
+
+    // Return all states poiting in
+    public List<Pair> arrowsIn(final State state) {
+
+        final Predicate<Pair> isGoingToState = pair -> pair.state.equals(state);
+        final Function<State, Stream<Pair>> extract = s -> s.transition.stream()
+                .filter(isGoingToState)
+                .map(tp -> new Pair(tp.symbol, s));
+        final Predicate<Pair> notComingFromState = pair -> !pair.state
+                .equals(state);
+        return this.getStatesStream()
+                .flatMap(extract)
+                .filter(notComingFromState)
+                .sorted(byState)
+                .collect(Collectors.toList());
+    }
+
+    // Return states looping back
+    public List<Pair> arrowsLoop(final State state) {
+
+        final Predicate<Pair> isGoingToState = pair -> pair.state.equals(state);
+        final Function<State, Stream<Pair>> extract = s -> s.transition.stream()
+                .filter(isGoingToState)
+                .map(tp -> new Pair(tp.symbol, s));
+        final Predicate<Pair> comingFromItself = pair -> pair.state
+                .equals(state);
+        return this.getStatesStream()
+                .flatMap(extract)
+                .filter(comingFromItself)
+                .sorted(byState)
+                .collect(Collectors.toList());
+    }
+
+    // Does it have arrows pointing in? (or looping back)
+    public boolean hasArrowsIn(final State state) {
+        return !arrowsIn(state).isEmpty() || !arrowsLoop(state).isEmpty();
+    }
+
+    // Does it have arrows pointing out? (or looping back)
+    public boolean hasArrowsOut(final State state) {
+        return !arrowsOut(state).isEmpty() || !arrowsLoop(state).isEmpty();
+    }
+
+    // Return states this state is pointing to
+    public List<Pair> arrowsOut(final State state) {
+
+        final Predicate<Pair> notComingFromState = pair -> !pair.state
+                .equals(state);
+        return state.transition.stream()
+                .filter(notComingFromState)
+                .sorted(byState)
+                .collect(Collectors.toList());
+    }
+
+    // Adding strings by removing epsilon and adding brackets
+    private String symConcat(String sym1, String sym2) {
+
+        Predicate<String> requiresBrackets = s -> {
+            String[] bits = s.split("[()]");
+            String subs = bits.length > 1
+                    ? bits[0].concat(bits[bits.length - 1])
+                    : bits[0];
+            return subs.contains(Automaton.UNION) && !(s.startsWith("(")
+                    && (s.endsWith(")") || s.endsWith(")*")));
+        };
+        if (sym1.equals(Automaton.EPSILON))
+            return sym2;
+        else if (sym2.equals(Automaton.EPSILON))
+            return sym1;
+        else {
+            if (requiresBrackets.test(sym1))
+                sym1 = "(" + sym1 + ")";
+            if (requiresBrackets.test(sym2))
+                sym2 = "(" + sym2 + ")";
+            return sym1.concat(sym2);
+        }
+    }
+
+    // Make the connections around a state
+    public void makeRoutesAround(final State state, Automaton destination) {
+
+        List<Pair> arrowsIn = this.arrowsIn(state);
+        List<Pair> arrowsOut = this.arrowsOut(state);
+        List<Pair> arrowsLoop = this.arrowsLoop(state);
+        BiConsumer<Pair, Pair> biconsumer = (in, out) -> {
+            String sym = in.getSymbolName();
+            if (!arrowsLoop.isEmpty())
+                sym = symConcat(sym, "(" + arrowsLoop.get(0).getSymbolName()
+                        + ")" + Automaton.STAR);
+            sym = symConcat(sym, out.getSymbolName());
+            destination.addSymbol(sym);
+            destination.getState(in.getState().getName())
+                    .setTransition(List.of(sym, out.getState().getName()));
+        };
+        arrowsIn.forEach(
+                in -> arrowsOut.forEach(out -> biconsumer.accept(in, out)));
+    }
+
+    // Get the next step towards a RE
+    public Automaton nextStepRE() {
+
+        Predicate<State> notSorA = nSA -> !(nSA.equals(getStartState())
+                || getAcceptStatesStream().collect(Collectors.toList())
+                        .contains(nSA));
+
+        State toRemove = this.getStatesStream()
+                .filter(notSorA)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "No states left to remove!!"));
+
+        Automaton nextStep = this.cloneExceptState(toRemove);
+        this.makeRoutesAround(toRemove, nextStep);
+        nextStep.parallelUnion();
+        return nextStep;
     }
 
     /*

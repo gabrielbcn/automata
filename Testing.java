@@ -242,37 +242,97 @@ public class Testing {
         // Transitions
         nfa1.getState("q1").setTransition(List.of("a", "q2", "b", "q3"));
         nfa1.getState("q2").setTransition(List.of("a", "q1", "b", "q2"));
-        nfa1.getState("q3")
-                .setTransition(List.of("a", "q2", "b", "q2", "b", "q3"));
+        nfa1.getState("q3").setTransition(List.of("a", "q2", "b", "q1"));
         nfa1.setAccept(List.of("q2", "q3")); // Accept states
         nfa1.setStart("q1"); // Start
         nfa1.render(); // Show
 
-        System.err.println(nfa1.getStatesList());
-        Consumer<Automaton.State> inLoopOut1 = state -> {
-            System.err.println("State = " + state);
-            System.err.println(nfa1.arrowsIn(state));
-            System.err.println(nfa1.arrowsLoop(state));
-            System.err.println(nfa1.arrowsOut(state));
-        };
-        nfa1.getStatesStream().forEach(inLoopOut1);
-
-        Automaton nfa2 = nfa1.cloneExcept("");
-        Consumer<Automaton.State> inLoopOut2 = state -> {
-            System.err.println("State = " + state);
-            System.err.println(nfa2.arrowsIn(state));
-            System.err.println(nfa2.arrowsLoop(state));
-            System.err.println(nfa2.arrowsOut(state));
-        };
-        System.err.println(nfa2.getStatesList());
-        nfa2.getStatesStream().forEach(inLoopOut2);
-
+        Automaton nfa2 = nfa1.cloner();
+        nfa2.arrangeForRE();
         nfa2.render();
+
+        Automaton nfa3 = nfa2.nextStepRE();
+        nfa3.render();
+
+        Automaton nfa4 = nfa3.nextStepRE();
+        nfa4.render();
+
+        Automaton nfa5 = nfa4.nextStepRE();
+        nfa5.render();
+    }
+
+    static void AssignQ3() {
+
+        Automaton nfa1 = new Automaton("AssignQ3");
+        nfa1.setWithLegend(false);
+
+        nfa1.addSymbol(List.of("a", "b")); // Symbols
+        nfa1.addState(List.of("s", "q1", "q2", "q3", "q4", "r1")); // States
+        // Transitions
+        nfa1.getState("s").setTransition(List.of("a", "r1", "b", "q1"));
+        nfa1.getState("q1").setTransition(List.of("b", "q1", "a", "q2"));
+        nfa1.getState("q2").setTransition(List.of("a", "r1", "b", "q3"));
+        nfa1.getState("q3").setTransition(List.of("a", "q4", "b", "q1"));
+        nfa1.getState("q4").setTransition(List.of("a", "q4", "b", "q4"));
+        nfa1.getState("r1").setTransition(List.of("a", "r1", "b", "q1"));
+        nfa1.setAccept(List.of("q4")); // Accept states
+        nfa1.setStart("s"); // Start
+        nfa1.render(); // Show
+
+        Automaton nfa2 = nfa1.cloner();
+        nfa2.arrangeForRE();
+        nfa2.render();
+
+        Automaton nfa3 = nfa2.nextStepRE();
+        nfa3.render();
+
+        Automaton nfa4 = nfa3.nextStepRE();
+        nfa4.render();
+
+        Automaton nfa5 = nfa4.nextStepRE();
+        nfa5.render();
+
+        Automaton nfa6 = nfa5.nextStepRE();
+        nfa6.render();
+
+        Automaton nfa7 = nfa6.nextStepRE();
+        nfa7.render();
+    }
+
+    static void Mel() {
+
+        Automaton nfa1 = new Automaton("Mel");
+        nfa1.setWithLegend(false);
+
+        nfa1.addSymbol(List.of("0", "1")); // Symbols
+        nfa1.addState(List.of("s1", "s2", "s3")); // States
+        // Transitions
+        nfa1.getState("s1").setTransition(List.of("0", "s3"));
+        nfa1.getState("s2")
+                .setTransition(
+                        List.of("0", "s3", "1", "s1", Automaton.EPSILON, "s1"));
+        nfa1.getState("s3").setTransition(List.of("1", "s2"));
+        nfa1.setAccept(List.of("s3")); // Accept states
+        nfa1.setStart("s1"); // Start
+        nfa1.render(); // Show
+
+        Automaton nfa2 = nfa1.cloner();
+        nfa2.arrangeForRE();
+        nfa2.render();
+
+        Automaton nfa3 = nfa2.nextStepRE();
+        nfa3.render();
+
+        Automaton nfa4 = nfa3.nextStepRE();
+        nfa4.render();
+
+        Automaton nfa5 = nfa4.nextStepRE();
+        nfa5.render();
 
     }
 
     public static void main(String... args) {
-        NFA168b();
+        AssignQ3();
     }
 
 }
