@@ -1,14 +1,18 @@
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,7 +84,7 @@ public class Automaton {
     /*
      * State inner class
      */
-    class State {
+    class State implements Comparable<State> {
 
         private final String name;
         List<Pair> transition;
@@ -102,6 +106,10 @@ public class Automaton {
             }
         }
 
+        public Stream<Pair> getTransitionStream() {
+            return this.transition.stream();
+        }
+
         @Override
         public String toString() {
             // return "S[" + name + ":" + accept + ":" + transition +"]";
@@ -119,6 +127,22 @@ public class Automaton {
         public void setAccept(final Boolean accept) {
             this.accept = accept;
         }
+
+        public int compareTo(State o) {
+            return shortFirst.compare(this.getName(), o.getName());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return (obj != null)
+                    && this.getName().equals(((State) obj).getName());
+        }
+
+        @Override
+        public int hashCode() {
+            return this.name.hashCode();
+        }
+
     }
 
     /*
@@ -127,29 +151,28 @@ public class Automaton {
     public static final String EPSILON = "ℇ";
     public static final String EMPTY = "∅";
     private static final String START = "start";
+    private static final String UNION = "∪";
+    private static final String STAR = "*";
     /*
      * Fields
      */
     // Automaton name
-    String name;
+    private String name;
     // Map of states
-    Map<String, State> states;
+    private Map<String, State> states;
     // Map of symbols
-    Map<String, Symbol> symbols;
+    private Map<String, Symbol> symbols;
     // Name of start state
-    State startState;
+    private State startState;
     // Name of accept states
-    Set<String> nameAcceptStates;
+    private Set<State> acceptStates;
     // Print legend
-    public boolean withLegend = true;
+    private boolean withLegend = true;
 
     // Comparator for treemap sorting
     private static final Comparator<String> shortFirst = Comparator
             .comparing(String::length)
             .thenComparing(Comparator.naturalOrder());
-
-    // Lambda helpers
-    private static final Function<State, String> stateToName = s -> s.name;
 
     /*
      * Constructor
@@ -157,20 +180,21 @@ public class Automaton {
     public Automaton(final String name) {
 
         this.name = name;
-        states = new TreeMap<>(shortFirst);
-        symbols = new TreeMap<>();
-        symbols.put(EPSILON, new Symbol(EPSILON));
-        nameAcceptStates = new TreeSet<>(shortFirst);
+        this.states = new TreeMap<>(shortFirst);
+        this.symbols = new TreeMap<>(shortFirst);
+        this.symbols.put(EPSILON, new Symbol(EPSILON));
+        this.acceptStates = new TreeSet<>();
     }
-
     /*
      * getters and setters
      */
+
+    // Symbols
     public void addSymbol(final String symbol) {
         symbols.computeIfAbsent(symbol, Symbol::new);
     }
 
-    public void addSymbol(final List<String> symbols) {
+    public void addSymbol(final Collection<String> symbols) {
         symbols.forEach(this::addSymbol);
     }
 
@@ -184,6 +208,11 @@ public class Automaton {
         return symbols.get(name);
     }
 
+    public Stream<Symbol> getSymbolsStream() {
+        return this.symbols.values().stream();
+    }
+
+    // States
     public void addState(final String state) {
         states.computeIfAbsent(state, State::new);
     }
@@ -204,53 +233,69 @@ public class Automaton {
         return found;
     }
 
-    // Return stream of all states
     public Stream<State> getStatesStream() {
         return this.states.values().stream();
     }
 
-    // Return list of all states
     public List<State> getStatesList() {
         return getStatesStream().collect(Collectors.toList());
     }
 
-    // Return list of all states
     public List<String> getStateNamesList() {
-        return getStatesStream().map(stateToName).collect(Collectors.toList());
+        return getStatesStream().map(State::getName)
+                .collect(Collectors.toList());
     }
 
+    // Acceptance
     public void setAccept(final String nameState) {
-        this.getState(nameState).accept = true;
-        nameAcceptStates.add(nameState);
+        this.setAccept(getState(nameState));
     }
 
     public void setAccept(final State state) {
         state.accept = true;
-        nameAcceptStates.add(state.name);
+        this.acceptStates.add(state);
     }
 
     public void setAccept(final List<String> nameStates) {
         nameStates.forEach(this::setAccept);
     }
 
-    public void setAcceptStates(final List<State> states) {
+    public void setAcceptStates(final Collection<State> states) {
         states.forEach(this::setAccept);
     }
 
     public boolean isAccept(final State state) {
-        return nameAcceptStates.contains(state.name);
+        return acceptStates.contains(state);
     }
 
     public boolean isAccept(final List<State> states) {
         return states.stream().anyMatch(this::isAccept);
     }
 
+    public Stream<State> getAcceptStatesStream() {
+        return this.states.values().stream().filter(State::isAccept);
+    }
+
+    // Start state
+    public void setStart(final State startState) {
+        this.startState = startState;
+    }
+
     public void setStart(final String startState) {
-        this.startState = this.getState(startState);
+        this.setStart(this.getState(startState));
     }
 
     public State getStartState() {
         return this.startState;
+    }
+
+    // Legend related
+    public boolean isWithLegend() {
+        return withLegend;
+    }
+
+    public void setWithLegend(boolean withLegend) {
+        this.withLegend = withLegend;
     }
 
     @Override
@@ -277,7 +322,7 @@ public class Automaton {
 
         return states.stream()
                 .flatMap(s -> transition(symbol, s).stream())
-                .sorted(Comparator.comparing(State::getName))
+                .sorted()
                 .distinct()
                 .collect(Collectors.toList());
     }
@@ -288,12 +333,17 @@ public class Automaton {
         final Stream<State> closured = states.stream()
                 .flatMap(s -> transition(getSymbol(EPSILON), s).stream());
         return Stream.concat(closured, states.stream())
-                .sorted((s1, s2) -> s1.name.compareTo(s2.name))
+                .sorted()
                 .distinct()
                 .collect(Collectors.toList());
     }
 
-    // Get a power set of the existing states
+    /*
+     * Get a power set of the existing states
+     * 
+     * Returns a map with the name of the superstate and the associated
+     * states
+     */
     Map<String, List<State>> statesPowerSet() {
 
         // Generate power set
@@ -304,14 +354,18 @@ public class Automaton {
                 .collect(Collectors.toList());
 
         // Create the new states
-        final Map<String, List<State>> result = new TreeMap<>();
-        for (final List<String> set : powerSet)
-            if (set.isEmpty())
-                result.put(EMPTY, Arrays.asList(new State(EMPTY)));
+        final Map<String, List<State>> result = new TreeMap<>(shortFirst);
+        for (final List<String> listEntry : powerSet)
+            if (listEntry.isEmpty())
+                result.put(EMPTY, List.of(new State(EMPTY)));
             else
                 result.put(
-                        set.stream().sorted().collect(Collectors.joining("")),
-                        set.stream()
+                        // The key will be a superstate name
+                        listEntry.stream()
+                                .sorted(shortFirst)
+                                .collect(Collectors.joining("")),
+                        // The value will be a list of all composing states
+                        listEntry.stream()
                                 .map(this::getState)
                                 .collect(Collectors.toList()));
         return result;
@@ -326,19 +380,25 @@ public class Automaton {
         // Set symbols
         dfa.symbols = this.symbols;
 
-        // Get the powerset and add the states
+        // Get the powerset
         final Map<String, List<State>> powerSet = this.statesPowerSet();
+
+        // Add the states
         powerSet.keySet().stream().forEach(dfa::addState);
+
         /*
-         * Get accept states traverse powerset, apply epsilon closure to
-         * list of associated states and see if any outcome maps to accept
-         * state, then add
+         * Get accept states traverse powerset and see if any outcome maps
+         * to accept state, then add to new accept states
+         * 
+         * Note: not applying epsilon closure here
          */
         powerSet.entrySet()
                 .stream()
                 .filter(state -> state.getValue()
                         .stream()
-                        .anyMatch(t -> this.nameAcceptStates.contains(t.name)))
+                        // is any of the associated states in the previous
+                        // accept states list?
+                        .anyMatch(t -> this.acceptStates.contains(t)))
                 .map(Map.Entry::getKey)
                 .forEach(dfa::setAccept);
 
@@ -395,29 +455,27 @@ public class Automaton {
         final Automaton simplified = new Automaton(this.name + "→S");
 
         // Set symbols
-        simplified.symbols = this.symbols;
+        simplified.addSymbol(this.symbols.keySet());
 
         // Surviving states
         final List<State> surviving = allIncoming();
-        final List<String> survivingNames = surviving.stream()
-                .map(Automaton.State::getName)
-                .collect(Collectors.toList());
 
         // Add the states as they are, with the transition function already
         // inside
         surviving.stream().forEach(simplified::addState);
 
         /*
-         * Get accept states traverse powerset, apply epsilon closure to
-         * list of associated states and see if any outcome maps to accept
-         * state, then add
+         * Get accept states traverse powerset and see if any outcome maps
+         * to accept state, then add
+         * 
+         * Note: not applying epsilon-closure here
          */
-        simplified.nameAcceptStates = this.nameAcceptStates.stream()
-                .filter(survivingNames::contains)
-                .collect(Collectors.toSet());
+        simplified.setAcceptStates(this.acceptStates.stream()
+                .filter(surviving::contains)
+                .collect(Collectors.toSet()));
 
         // Same start
-        simplified.setStart(this.startState.name);
+        simplified.setStart(this.startState);
 
         // Simplified done!!
         return simplified;
@@ -452,6 +510,7 @@ public class Automaton {
                 .collect(Collectors.toList());
     }
 
+    // Return states looping back
     public List<Pair> arrowsLoop(final State state) {
 
         final Predicate<Pair> isGoingToState = pair -> pair.state.equals(state);
@@ -469,6 +528,7 @@ public class Automaton {
                 .collect(Collectors.toList());
     }
 
+    // Return states this state is pointing to
     public List<Pair> arrowsOut(final State state) {
 
         final Predicate<Pair> notComingFromState = pair -> !pair.state
@@ -480,12 +540,85 @@ public class Automaton {
                 .collect(Collectors.toList());
     }
 
+    // Make the connections around a state
+    public void routesAround(final State state) {
+
+        List<Pair> arrowsIn = this.arrowsIn(state);
+        List<Pair> arrowsOut = this.arrowsOut(state);
+        List<Pair> arrowsLoop = this.arrowsLoop(state);
+
+        BiConsumer<Pair, Pair> biconsumer = (in, out) -> {
+            String sym = in.getSymbolName();
+            if (!arrowsLoop.isEmpty())
+                sym += "(" + arrowsLoop.get(0).getSymbolName() + ")"
+                        + Automaton.STAR;
+            sym += out.getSymbolName();
+            this.addSymbol(sym);
+            in.state.setTransition(List.of(sym, out.getState().getName()));
+        };
+
+        arrowsIn.forEach(
+                out -> arrowsOut.forEach(in -> biconsumer.accept(in, out)));
+    }
+
+    // Factory
+    public Automaton cloneExceptState(State ignore) {
+
+        Automaton clone = new Automaton(this.name + "+");
+        // Helpers
+        Predicate<String> notIgnoreString = sn -> ignore == null
+                || !sn.equals(ignore.getName());
+        Predicate<State> notIgnoreState = st -> ignore == null
+                || !st.getName().equals(ignore.getName());
+        Predicate<Pair> notIgnorePair = pa -> ignore == null
+                || !pa.state.getName().equals(ignore.getName());
+        // cloning symbols
+        this.getSymbolsStream().map(Symbol::getName).forEach(clone::addSymbol);
+        // cloning states
+        this.getStatesStream()
+                .map(State::getName)
+                .filter(notIgnoreString)
+                .forEach(clone::addState);
+        // setting same accepting states
+        this.getAcceptStatesStream()
+                .map(State::getName)
+                .filter(notIgnoreString)
+                .forEach(clone::setAccept);
+        // adding transitions
+        // Collector combiner
+        BinaryOperator<List<Pair>> combine = (l1, l2) -> {
+            l1.addAll(l2);
+            return l2;
+        };
+        clone.getStatesStream()
+                .filter(notIgnoreState)
+                .forEach(s -> this.getState(s.getName())
+                        .getTransitionStream()
+                        .filter(notIgnorePair)
+                        .collect(Collector.<Pair, List<Pair>>of(
+                                () -> s.transition, List::add, combine,
+                                Collector.Characteristics.IDENTITY_FINISH)));
+        // Start state
+        if (this.getStartState().equals(ignore))
+            throw new RuntimeException("Cannot remove the start state!!");
+        else
+            clone.setStart(this.getStartState().getName());
+        // Legend status
+        clone.setWithLegend(this.isWithLegend());
+        return clone;
+    }
+
+    public Automaton cloneExcept(String ignore) {
+        return ignore.isBlank() ? this.cloneExceptState(null)
+                : this.cloneExceptState(getState(ignore));
+    }
+
     /*
      * presentation block
      */
 
-    // Proper formatting of a list of states
-    private String presentStates(final List<State> states) {
+    // Proper formatting of a collection of states
+    private String presentStates(final Collection<State> states) {
         // Transform to a list of names and call presentation
         return presentStatesFromNames(
                 states.stream().map(s -> s.name).collect(Collectors.toList()));
@@ -661,15 +794,13 @@ public class Automaton {
                 colspan)));
 
         // Accept States
-        if (this.nameAcceptStates.size() < 10)
-            result.append(tr(td(i(b("Accept states: "))
-                    + presentStates(this.nameAcceptStates.stream()
-                            .map(this::getState)
-                            .collect(Collectors.toList())),
+        if (this.acceptStates.size() < 10)
+            result.append(tr(td(
+                    i(b("Accept states: ")) + presentStates(this.acceptStates),
                     colspan)));
         else
-            result.append(tr(
-                    td(i(b("Accept states: ")) + this.nameAcceptStates.size(),
+            result.append(
+                    tr(td(i(b("Accept states: ")) + this.acceptStates.size(),
                             colspan)));
 
         return tbl(result.toString());

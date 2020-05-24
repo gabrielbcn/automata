@@ -38,8 +38,7 @@ public class LanguageTree {
     }
 
     public List<LanguageTree> children(LanguageTree lt) {
-        return LanguageTree.automaton.symbols.values()
-                .stream()
+        return LanguageTree.automaton.getSymbolsStream()
                 .filter(sy -> !sy.getName().equals(Automaton.EPSILON))
                 .map(symbol -> new LanguageTree(
                         lt.name.concat(symbol.getName()),

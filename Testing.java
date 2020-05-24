@@ -163,7 +163,7 @@ public class Testing {
     static void NFA168() {
 
         Automaton nfa1 = new Automaton("NFA1.68Sipser");
-        nfa1.withLegend = false;
+        nfa1.setWithLegend(false);
 
         nfa1.addSymbol(List.of("a", "b")); // Symbols
         nfa1.addState(List.of("q1", "q2", "q3")); // States
@@ -235,7 +235,7 @@ public class Testing {
     static void NFA168b() {
 
         Automaton nfa1 = new Automaton("NFA1.68Sipser");
-        nfa1.withLegend = false;
+        nfa1.setWithLegend(false);
 
         nfa1.addSymbol(List.of("a", "b")); // Symbols
         nfa1.addState(List.of("q1", "q2", "q3")); // States
@@ -248,14 +248,26 @@ public class Testing {
         nfa1.setStart("q1"); // Start
         nfa1.render(); // Show
 
-        Consumer<Automaton.State> inLoopOut = state -> {
+        System.err.println(nfa1.getStatesList());
+        Consumer<Automaton.State> inLoopOut1 = state -> {
             System.err.println("State = " + state);
             System.err.println(nfa1.arrowsIn(state));
             System.err.println(nfa1.arrowsLoop(state));
             System.err.println(nfa1.arrowsOut(state));
         };
+        nfa1.getStatesStream().forEach(inLoopOut1);
 
-        nfa1.getStatesStream().forEach(inLoopOut);
+        Automaton nfa2 = nfa1.cloneExcept("");
+        Consumer<Automaton.State> inLoopOut2 = state -> {
+            System.err.println("State = " + state);
+            System.err.println(nfa2.arrowsIn(state));
+            System.err.println(nfa2.arrowsLoop(state));
+            System.err.println(nfa2.arrowsOut(state));
+        };
+        System.err.println(nfa2.getStatesList());
+        nfa2.getStatesStream().forEach(inLoopOut2);
+
+        nfa2.render();
 
     }
 
