@@ -692,8 +692,12 @@ public class Automaton {
         BiConsumer<Pair, Pair> biconsumer = (in, out) -> {
             String sym = in.getSymbolName();
             if (!arrowsLoop.isEmpty())
-                sym = symConcat(sym, "(" + arrowsLoop.get(0).getSymbolName()
-                        + ")" + Automaton.STAR);
+                if (arrowsLoop.get(0).getSymbolName().length() > 1)
+                    sym = symConcat(sym, "(" + arrowsLoop.get(0).getSymbolName()
+                            + ")" + Automaton.STAR);
+                else
+                    sym = symConcat(sym,
+                            arrowsLoop.get(0).getSymbolName() + Automaton.STAR);
             sym = symConcat(sym, out.getSymbolName());
             destination.addSymbol(sym);
             destination.getState(in.getState().getName())
