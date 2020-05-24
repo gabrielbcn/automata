@@ -1,6 +1,8 @@
-import java.util.List;
 
-public class Test {
+import java.util.List;
+import java.util.function.Consumer;
+
+public class Testing {
 
     static void NFA1() {
         /*
@@ -160,8 +162,9 @@ public class Test {
 
     static void NFA168() {
 
-        Automaton.withLegend = false;
         Automaton nfa1 = new Automaton("NFA1.68Sipser");
+        nfa1.withLegend = false;
+
         nfa1.addSymbol(List.of("a", "b")); // Symbols
         nfa1.addState(List.of("q1", "q2", "q3")); // States
         // Transitions
@@ -229,10 +232,35 @@ public class Test {
         nfa5.render(); // Show
     }
 
+    static void NFA168b() {
+
+        Automaton nfa1 = new Automaton("NFA1.68Sipser");
+        nfa1.withLegend = false;
+
+        nfa1.addSymbol(List.of("a", "b")); // Symbols
+        nfa1.addState(List.of("q1", "q2", "q3")); // States
+        // Transitions
+        nfa1.getState("q1").setTransition(List.of("a", "q2", "b", "q3"));
+        nfa1.getState("q2").setTransition(List.of("a", "q1", "b", "q2"));
+        nfa1.getState("q3")
+                .setTransition(List.of("a", "q2", "b", "q2", "b", "q3"));
+        nfa1.setAccept(List.of("q2", "q3")); // Accept states
+        nfa1.setStart("q1"); // Start
+        nfa1.render(); // Show
+
+        Consumer<Automaton.State> inLoopOut = state -> {
+            System.err.println("State = " + state);
+            System.err.println(nfa1.arrowsIn(state));
+            System.err.println(nfa1.arrowsLoop(state));
+            System.err.println(nfa1.arrowsOut(state));
+        };
+
+        nfa1.getStatesStream().forEach(inLoopOut);
+
+    }
+
     public static void main(String... args) {
-
-        NFA168();
-
+        NFA168b();
     }
 
 }
