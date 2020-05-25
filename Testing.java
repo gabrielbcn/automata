@@ -358,8 +358,6 @@ public class Testing {
         Automaton nfa6 = nfa5.nextStepRE();
         nfa6.render();
 
-        Automaton nfa7 = nfa6.nextStepRE();
-        nfa7.render();
     }
 
     static void Mel() {
@@ -377,25 +375,30 @@ public class Testing {
         nfa1.getState("s3").setTransition(List.of("1", "s2"));
         nfa1.setAccept(List.of("s3")); // Accept states
         nfa1.setStart("s1"); // Start
-        nfa1.render(); // Show
 
-        Automaton nfa2 = nfa1.cloner();
-        nfa2.arrangeForRE();
-        nfa2.render();
+        nfa1.makeRE();
+    }
 
-        Automaton nfa3 = nfa2.nextStepRE();
-        nfa3.render();
+    static void Sri() {
 
-        Automaton nfa4 = nfa3.nextStepRE();
-        nfa4.render();
+        Automaton nfa1 = new Automaton("Sri");
+        nfa1.setWithLegend(false);
 
-        Automaton nfa5 = nfa4.nextStepRE();
-        nfa5.render();
+        nfa1.addSymbol(List.of("a", "b")); // Symbols
+        nfa1.addState(List.of("q1", "q2", "q3")); // States
+        // Transitions
+        nfa1.getState("q1")
+                .setTransition(List.of("b", "q1", "a", "q1", "a", "q2"));
+        nfa1.getState("q2").setTransition(List.of("b", "q3"));
+        nfa1.getState("q3").setTransition(List.of());
+        nfa1.setAccept(List.of("q3")); // Accept states
+        nfa1.setStart("q1"); // Start
 
+        nfa1.makeRE();
     }
 
     public static void main(String... args) {
-        AssignQ6();
+        Sri();
     }
 
 }

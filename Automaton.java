@@ -13,9 +13,9 @@ import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.paukov.combinatorics3.Generator;
@@ -115,7 +115,7 @@ public class Automaton {
         @Override
         public String toString() {
             // return "S[" + name + ":" + accept + ":" + transition +"]";
-            return "S[" + name + "]";
+            return "S[" + name + ",t=" + transition + "]";
         }
 
         public String getName() {
@@ -186,6 +186,12 @@ public class Automaton {
         this.symbols = new TreeMap<>();
         this.symbols.put(EPSILON, new Symbol(EPSILON));
         this.acceptStates = new TreeSet<>();
+    }
+
+    @Override
+    public String toString() {
+        return "Automaton [nm=" + name + ",st=" + states + ",sy=" + symbols
+                + ",st=" + startState + ",ac=" + acceptStates + "]";
     }
     /*
      * getters and setters
@@ -306,12 +312,6 @@ public class Automaton {
 
     public void setWithLegend(boolean withLegend) {
         this.withLegend = withLegend;
-    }
-
-    @Override
-    public String toString() {
-        return "Automaton [name=" + name + ", states=" + states + ", symbols="
-                + symbols + "]";
     }
 
     /*
@@ -593,8 +593,8 @@ public class Automaton {
         }
         // New accept
         if (this.acceptStates.size() != 1
-                || hasArrowsOut(acceptStates.iterator().next())
-                || acceptStates.contains(this.getStartState())) {
+                || this.hasArrowsOut(this.acceptStates.iterator().next())
+                || this.acceptStates.contains(this.getStartState())) {
             this.addState("a");
             this.getAcceptStatesStream()
                     .forEach(s -> s
@@ -699,7 +699,7 @@ public class Automaton {
                     sym = symConcat(sym,
                             arrowsLoop.get(0).getSymbolName() + Automaton.STAR);
             sym = symConcat(sym, out.getSymbolName());
-            destination.addSymbol(sym);
+            // destination.addSymbol(sym);
             destination.getState(in.getState().getName())
                     .setTransition(List.of(sym, out.getState().getName()));
         };
@@ -724,6 +724,34 @@ public class Automaton {
         this.makeRoutesAround(toRemove, nextStep);
         nextStep.parallelUnion();
         return nextStep;
+    }
+
+    // All the way to a RE
+    public void makeRE() {
+
+        this.arrangeForRE();
+        this.render();
+
+        Predicate<State> notSorA = nSA -> !(nSA.equals(this.getStartState())
+                || this.getAcceptStatesStream()
+                        .collect(Collectors.toList())
+                        .contains(nSA));
+
+        List<String> toRemove = this.getStatesStream()
+                .filter(notSorA)
+                .map(State::getName)
+                .collect(Collectors.toList());
+
+        Automaton previous = this;
+        Automaton next;
+
+        for (String s : toRemove) {
+            next = previous.cloneExceptState(previous.getState(s));
+            previous.makeRoutesAround(previous.getState(s), next);
+            next.parallelUnion();
+            next.render();
+            previous = next;
+        }
     }
 
     /*
