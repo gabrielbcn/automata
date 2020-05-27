@@ -333,30 +333,17 @@ public class Testing {
         nfa1.addSymbol(List.of("a", "b")); // Symbols
         nfa1.addState(List.of("s", "q1", "q2", "q3", "q4")); // States
         // Transitions
-        nfa1.getState("s").setTransition(List.of("b", "q1", "a", "q1"));
-        nfa1.getState("q1").setTransition(List.of("b", "q2", "a", "q2"));
-        nfa1.getState("q2").setTransition(List.of("b", "q3", "a", "q3"));
-        nfa1.getState("q3").setTransition(List.of("b", "q4", "a", "q4"));
-        nfa1.getState("q4").setTransition(List.of("b", "q4", "a", "q4"));
+        nfa1.getState("s").setTransition(List.of("a", "q1", "b", "q1"));
+        nfa1.getState("q1").setTransition(List.of("a", "q2", "b", "q2"));
+        nfa1.getState("q2").setTransition(List.of("a", "q3", "b", "q3"));
+        nfa1.getState("q3").setTransition(List.of("a", "q4", "b", "q4"));
+        nfa1.getState("q4").setTransition(List.of("a", "q4", "b", "q4"));
         nfa1.setAccept(List.of("s", "q1", "q2", "q3")); // Accept states
         nfa1.setStart("s"); // Start
         nfa1.render(); // Show
 
-        Automaton nfa2 = nfa1.cloner();
-        nfa2.arrangeForRE();
-        nfa2.render();
-
-        Automaton nfa3 = nfa2.nextStepRE();
-        nfa3.render();
-
-        Automaton nfa4 = nfa3.nextStepRE();
-        nfa4.render();
-
-        Automaton nfa5 = nfa4.nextStepRE();
-        nfa5.render();
-
-        Automaton nfa6 = nfa5.nextStepRE();
-        nfa6.render();
+        nfa1.makeRE();
+        nfa1.makeAllREs();
 
     }
 
@@ -377,6 +364,7 @@ public class Testing {
         nfa1.setStart("s1"); // Start
 
         nfa1.makeRE();
+        nfa1.makeAllREs();
     }
 
     static void Sri() {
@@ -388,17 +376,92 @@ public class Testing {
         nfa1.addState(List.of("q1", "q2", "q3")); // States
         // Transitions
         nfa1.getState("q1")
-                .setTransition(List.of("b", "q1", "a", "q1", "a", "q2"));
+                .setTransition(List.of("a", "q1", "b", "q1", "a", "q2"));
         nfa1.getState("q2").setTransition(List.of("b", "q3"));
         nfa1.getState("q3").setTransition(List.of());
         nfa1.setAccept(List.of("q3")); // Accept states
         nfa1.setStart("q1"); // Start
 
         nfa1.makeRE();
+        nfa1.makeAllREs();
+    }
+
+    static void Ex1() {
+
+        Automaton nfa1 = new Automaton("Example1");
+        nfa1.setWithLegend(false);
+
+        nfa1.addSymbol(List.of("0", "1")); // Symbols
+        nfa1.addState(List.of("q1", "q2", "q3")); // States
+        // Transitions
+        nfa1.getState("q1")
+                .setTransition(List.of("0", "q1", "1", "q1", "1", "q2"));
+        nfa1.getState("q2").setTransition(List.of("0", "q3"));
+        nfa1.getState("q3").setTransition(List.of());
+        nfa1.setAccept(List.of("q3")); // Accept states
+        nfa1.setStart("q1"); // Start
+
+        nfa1.makeRE();
+        nfa1.makeAllREs(); // (0∪1)*10
+    }
+
+    static void Ex2() {
+
+        Automaton nfa1 = new Automaton("Example1");
+        nfa1.setWithLegend(false);
+
+        nfa1.addSymbol(List.of("x")); // Symbols
+        nfa1.addState(List.of("q0", "q1")); // States
+        // Transitions
+        nfa1.getState("q0").setTransition(List.of("x", "q1"));
+        nfa1.getState("q1").setTransition(List.of("x", "q0"));
+        nfa1.setAccept(List.of("q0")); // Accept states
+        nfa1.setStart("q0"); // Start
+
+        nfa1.makeRE();
+        nfa1.makeAllREs(); // (xx)*
+    }
+
+    static void Odd0() {
+
+        Automaton nfa1 = new Automaton("Odd0");
+        nfa1.setWithLegend(false);
+
+        nfa1.addSymbol(List.of("x")); // Symbols
+        nfa1.addState(List.of("e0e1", "o0e1", "e0o1", "o0o1")); // States
+        // Transitions
+        nfa1.getState("e0e1").setTransition(List.of("0", "o0e1", "1", "e0o1"));
+        nfa1.getState("o0e1").setTransition(List.of("0", "e0e1", "1", "o0o1"));
+        nfa1.getState("e0o1").setTransition(List.of("0", "o0o1", "1", "e0e1"));
+        nfa1.getState("o0o1").setTransition(List.of("0", "e0o1", "1", "o0e1"));
+        nfa1.setAccept(List.of("o0e1", "o0o1")); // Accept states
+        nfa1.setStart("e0e1"); // Start
+
+        nfa1.render();
+        nfa1.makeRE(List.of("o0e1", "e0o1", "o0o1", "e0e1"));
+    }
+
+    static void Odd0OrEven1() {
+
+        Automaton nfa1 = new Automaton("Odd0");
+        nfa1.setWithLegend(false);
+
+        nfa1.addSymbol(List.of("x")); // Symbols
+        nfa1.addState(List.of("e0e1", "o0e1", "e0o1", "o0o1")); // States
+        // Transitions
+        nfa1.getState("e0e1").setTransition(List.of("0", "o0e1", "1", "e0o1"));
+        nfa1.getState("o0e1").setTransition(List.of("0", "e0e1", "1", "o0o1"));
+        nfa1.getState("e0o1").setTransition(List.of("0", "o0o1", "1", "e0e1"));
+        nfa1.getState("o0o1").setTransition(List.of("0", "e0o1", "1", "o0e1"));
+        nfa1.setAccept(List.of("o0e1", "o0o1", "e0e1")); // Accept states
+        nfa1.setStart("e0e1"); // Start
+
+        nfa1.makeRE();
+        nfa1.makeAllREs();
     }
 
     public static void main(String... args) {
-        Sri();
+        Odd0();
     }
 
 }

@@ -15,7 +15,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.paukov.combinatorics3.Generator;
@@ -104,8 +103,13 @@ public class Automaton {
                 final Symbol tempSym = getSymbol(inputMap.get(i));
                 final State tempState = getState(inputMap.get(i + 1));
 
-                this.transition.add(0, new Pair(tempSym, tempState));
+                this.transition.add(new Pair(tempSym, tempState));
             }
+        }
+
+        public void setTransition(String sym, String state) {
+
+            this.transition.add(0, new Pair(getSymbol(sym), getState(state)));
         }
 
         public Stream<Pair> getTransitionStream() {
@@ -209,8 +213,7 @@ public class Automaton {
     public Symbol getSymbol(final String name) {
         // Error checking
         if (symbols.get(name) == null) {
-            System.err.println(
-                    "WARNING: Symbol " + name + " not found, creating...");
+            // System.err.println("Error: Symbol " + name + " not found!");
             addSymbol(name);
         }
         return symbols.get(name);
@@ -583,6 +586,7 @@ public class Automaton {
 
     public void arrangeForRE() {
 
+        this.name = this.name.concat("+");
         // New start
         if (hasArrowsIn(this.getStartState())) {
             this.addState("S");
@@ -597,6 +601,7 @@ public class Automaton {
                 || this.acceptStates.contains(this.getStartState())) {
             this.addState("a");
             this.getAcceptStatesStream()
+                    .filter(s -> !s.getName().equals("a"))
                     .forEach(s -> s
                             .setTransition(List.of(Automaton.EPSILON, "a")));
             this.clearAccept();
@@ -699,9 +704,8 @@ public class Automaton {
                     sym = symConcat(sym,
                             arrowsLoop.get(0).getSymbolName() + Automaton.STAR);
             sym = symConcat(sym, out.getSymbolName());
-            // destination.addSymbol(sym);
             destination.getState(in.getState().getName())
-                    .setTransition(List.of(sym, out.getState().getName()));
+                    .setTransition(sym, out.getState().getName());
         };
         arrowsIn.forEach(
                 in -> arrowsOut.forEach(out -> biconsumer.accept(in, out)));
@@ -754,6 +758,64 @@ public class Automaton {
         }
     }
 
+    // All the way to a RE, given states
+    public void makeRE(List<String> toRemove) {
+
+        this.arrangeForRE();
+        this.render();
+
+        Automaton previous = this;
+        Automaton next;
+
+        for (String s : toRemove) {
+            next = previous.cloneExceptState(previous.getState(s));
+            previous.makeRoutesAround(previous.getState(s), next);
+            next.parallelUnion();
+            next.render();
+            previous = next;
+        }
+    }
+
+    // All possible REs
+    public void makeAllREs() {
+
+        this.arrangeForRE();
+
+        Predicate<State> notSorA = nSA -> !(nSA.equals(this.getStartState())
+                || this.getAcceptStatesStream()
+                        .collect(Collectors.toList())
+                        .contains(nSA));
+
+        List<String> toRemove = this.getStatesStream()
+                .filter(notSorA)
+                .map(State::getName)
+                .collect(Collectors.toList());
+
+        // Generate permutations
+        final List<List<String>> permutations = Generator.permutation(toRemove)
+                .simple()
+                .stream()
+                .collect(Collectors.toList());
+
+        for (List<String> sequenceToRemove : permutations) {
+            Automaton previous = this;
+            Automaton next;
+
+            for (String s : sequenceToRemove) {
+                next = previous.cloneExceptState(previous.getState(s));
+                previous.makeRoutesAround(previous.getState(s), next);
+                next.parallelUnion();
+                previous = next;
+            }
+            String first = previous.getStatesStream()
+                    .flatMap(State::getTransitionStream)
+                    .map(Pair::getSymbolName)
+                    .filter(s -> !s.equals(Automaton.EPSILON))
+                    .collect(Collectors.joining(", "));
+            System.out.print(sequenceToRemove);
+            System.out.println(" -> " + first + " (" + first.length() + ")");
+        }
+    }
     /*
      * presentation block
      */
