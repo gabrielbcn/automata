@@ -460,8 +460,45 @@ public class Testing {
         nfa1.makeAllREs();
     }
 
+    static void Ps2Q31() {
+
+        Automaton nfa1 = new Automaton("Ps2Q31");
+        nfa1.setWithLegend(false);
+
+        nfa1.addState(List.of("q1", "q2")); // States
+        // Transitions
+        nfa1.getState("q1")
+                .setTransition(List.of("a", "q1", "a", "q2", "b", "q2"));
+        nfa1.getState("q2").setTransition(List.of("b", "q1"));
+        nfa1.setAccept(List.of("q1")); // Accept states
+        nfa1.setStart("q1"); // Start
+
+        nfa1.render();
+        nfa1.makeRE(List.of("q2", "q1"));
+    }
+
+    static void Ps2Q32() {
+
+        Automaton nfa1 = new Automaton("Ps2Q32");
+        nfa1.setWithLegend(false);
+
+        nfa1.addState(List.of("q1", "q2", "q3")); // States
+        // Transitions
+        nfa1.getState("q1")
+                .setTransition(List.of(Automaton.EPSILON, "q2", "a", "q3"));
+        nfa1.getState("q2").setTransition(List.of("a", "q1"));
+        nfa1.getState("q3")
+                .setTransition(List.of("a", "q2", "b", "q2", "b", "q3"));
+        nfa1.setAccept(List.of("q2")); // Accept states
+        nfa1.setStart("q1"); // Start
+
+        nfa1.render();
+        nfa1.makeAllREs();
+        nfa1.makeRE(List.of("q2", "q3", "q1"));
+    }
+
     public static void main(String... args) {
-        Odd0();
+        Ps2Q32();
     }
 
 }
